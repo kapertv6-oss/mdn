@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>HAKKA</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root{
+  --bg:#0b0d14;
+  --neon:#ff4d6d;
+  --text:#f2f2f2;
+  --card1:#161a2a;
+  --card2:#0f1220;
+  --dx-color:#ff8c00;
+  --hellsing-color:#8a2be2;
+  --spy-color:#00ced1;
+  --user-color:#ff69b4;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Segoe UI, sans-serif;
+  background:radial-gradient(circle at top,#14182a,var(--bg));
+  color:var(--text);
+  min-height:100vh;
+  overflow-y:auto;
+}
+body::-webkit-scrollbar { width:8px; }
+body::-webkit-scrollbar-track { background:#0b0d14; border-radius:8px; }
+body::-webkit-scrollbar-thumb { background:var(--neon); border-radius:8px; }
+body::-webkit-scrollbar-thumb:hover { background:#ff80a0; }
+
+.characters-wrapper::-webkit-scrollbar { width:6px; }
+.characters-wrapper::-webkit-scrollbar-track { background:#0b0d14; border-radius:6px; }
+.characters-wrapper::-webkit-scrollbar-thumb { background:var(--neon); border-radius:6px; }
+.characters-wrapper::-webkit-scrollbar-thumb:hover { background:#ff80a0; }
+
+/* Частицы */
+.particle{
+  position:absolute;
+  width:4px;height:4px;
+  background:var(--neon);
+  border-radius:50%;
+  opacity:.6;
+  animation: float 14s linear infinite;
+}
+@keyframes float{
+  from{transform:translateY(110vh);}
+  to{transform:translateY(-10vh);}
+}
+
+/* Контейнер */
+.app{ max-width:420px; margin:auto; padding:16px; }
+
+/* Экраны */
+.screen{display:none;animation:fade .3s ease;}
+.screen.active{display:block;}
+@keyframes fade{ from{opacity:0;transform:translateY(8px);} to{opacity:1;} }
+
+/* Заголовки */
+.title{ text-align:center; font-size:24px; font-weight:700; color:var(--neon); margin-bottom:16px; }
+
+/* Карточки */
+.card{ background:linear-gradient(180deg,var(--card1),var(--card2)); border-radius:16px; padding:14px; margin-bottom:14px; display:flex; flex-direction:column; align-items:center; transition:.3s; }
+.card:hover{ transform:translateY(-2px); box-shadow:0 0 16px rgba(255,77,109,.4); }
+
+/* Кнопки */
+button{ background:var(--neon); border:none; color:white; padding:10px; border-radius:12px; font-weight:600; cursor:pointer; width:100%; }
+
+/* Inputs */
+input,textarea,select{ width:100%; margin-top:8px; padding:10px; border-radius:12px; border:none; background:#161a2a; color:white; font-weight:600; outline:none; }
+textarea{resize:none;height:70px}
+
+/* Стиль select фильтр */
+#animeFilter{
+  border:2px solid var(--neon);
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+  cursor:pointer;
+  background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12"><polygon points="0,0 12,0 6,6" fill="white"/></svg>');
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+  background-size:12px 12px;
+  transition:.3s;
+}
+#animeFilter:hover{ box-shadow:0 0 10px var(--neon); border-color:#ff80a0; }
+#animeFilter:focus{ box-shadow:0 0 14px var(--neon); border-color:var(--neon); }
+
+/* Профиль */
+.profile-row{ display:flex; justify-content:space-between; margin:10px 0; }
+.token{color:var(--neon); font-weight:700}
+
+/* Персонажи */
+.characters-wrapper{ max-height:50vh; overflow-y:auto; padding-right:6px; }
+.characters-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.char-card{text-align:center; opacity:0; animation:fadeInCard .4s forwards; }
+@keyframes fadeInCard{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;} }
+.avatar{ width:60px;height:60px; border-radius:50%; margin:0 auto 8px; background-size:cover; background-position:center; border:2px solid var(--neon); }
+.char-card p{ font-size:13px; opacity:.85; line-height:1.3; }
+
+/* Цветовая маркировка */
+.char-label{ font-size:12px; margin-top:4px; font-weight:600; padding:2px 6px; border-radius:8px; color:white; display:inline-block; }
+.dx-color{ background:var(--dx-color); }
+.hellsing-color{ background:var(--hellsing-color); }
+.spy-color{ background:var(--spy-color); }
+.user-color{ background:var(--user-color); }
+
+/* Чат */
+.chat-message{ padding:6px 10px; border-radius:12px; max-width:80%; word-wrap:break-word; color:white; margin-bottom:4px; }
+.user-msg{ align-self:flex-end; background:var(--neon);}
+.bot-msg{ align-self:flex-start; background:#161a2a; border:1px solid var(--neon);}
+.cursor{ display:inline-block; color:var(--neon); margin-left:2px; font-weight:bold; }
+
+/* Мобильная адаптация */
+@media (max-width:420px){
+  .characters-grid{ grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<script>
+for(let i=0;i<50;i++){
+  const p=document.createElement("div");
+  p.className="particle";
+  p.style.left=Math.random()*100+"vw";
+  p.style.animationDuration=10+Math.random()*10+"s";
+  p.style.opacity=Math.random();
+  document.body.appendChild(p);
+}
+</script>
+
+<div class="app">
+
+<!-- МЕНЮ -->
+<div id="menu" class="screen active">
+  <div class="title">Hakka AI</div>
+  <div class="card"><button onclick="openProfile()">👤 Профиль</button></div>
+  <div class="card"><button onclick="openCharacters()">🎮 Персонажи</button></div>
+  <div class="card"><button onclick="openWorkshop()">⚒ Мастерская</button></div>
+</div>
+
+<!-- ПРОФИЛЬ -->
+<div id="profile" class="screen">
+  <div class="title">Профиль</div>
+  <input id="nickname" placeholder="Ник пользователя">
+  <div class="profile-row">
+    <span>Токены</span>
+    <span class="token" id="tokens">0</span>
+  </div>
+  <button onclick="saveProfile()">Сохранить</button>
+  <button onclick="goMenu()" style="margin-top:10px;">Назад</button>
+</div>
+
+<!-- ПЕРСОНАЖИ -->
+<div id="characters" class="screen">
+  <div class="title">Персонажи</div>
+
+  <div style="margin-bottom:12px;">
+    <select id="animeFilter" onchange="renderCharacters()">
+      <option value="all">Все аниме</option>
+      <option value="Хеллсинг">Хеллсинг</option>
+      <option value="Старшая Школа DXD">Старшая Школа DXD</option>
+      <option value="Семья Шпиона">Семья Шпиона</option>
+      <option value="Пользовательские">Ваши персонажи</option>
+    </select>
+  </div>
+
+  <div class="characters-wrapper">
+    <div class="characters-grid" id="charactersGrid"></div>
+  </div>
+  <button onclick="goMenu()" style="margin-top:14px;">Назад</button>
+</div>
+
+<!-- МАСТЕРСКАЯ -->
+<div id="workshop" class="screen">
+  <div class="title">Мастерская</div>
+  <div class="card">
+    <strong>Создание персонажа (100 токенов)</strong>
+    <input id="charName" placeholder="Имя персонажа">
+    <textarea id="charDesc" placeholder="Описание персонажа"></textarea>
+    <input id="charAvatar" placeholder="URL аватарки">
+    <button onclick="createCharacter()" style="margin-top:10px;">Создать</button>
+  </div>
+  <button onclick="goMenu()">Назад</button>
+</div>
+
+<!-- ЧАТ -->
+<div id="chat" class="screen">
+  <div class="title">Чат с персонажем</div>
+  <div class="characters-wrapper" id="chatWindow" style="max-height:50vh; display:flex; flex-direction:column; gap:6px;"></div>
+  <input id="userMessage" placeholder="Напишите сообщение...">
+  <button onclick="sendMessage()" style="margin-top:6px;">Отправить (-1 токен)</button>
+  <button onclick="goCharacters()" style="margin-top:10px;">Назад</button>
+</div>
+
+</div>
+
+<script>
+// Персонажи
+const canonChars = [
+  {name:"Алукард", desc:"Древний бессмертный вампир.", avatar:"https://i.imgur.com/7Qp4FZP.jpg", anime:"Хеллсинг"},
+  {name:"Серас Виктория", desc:"Сильная и человечная вампирша.", avatar:"https://i.imgur.com/Jk0yJYF.jpg", anime:"Хеллсинг"},
+  {name:"Интегра Хеллсинг", desc:"Жёсткий лидер Хеллсинга.", avatar:"https://i.imgur.com/3Jk6gOQ.jpg", anime:"Хеллсинг"},
+  {name:"Риас Гремори", desc:"Харизматичная демонесса.", avatar:"https://i.imgur.com/BH4kG3Y.jpg", anime:"Старшая Школа DXD"},
+  {name:"Акено Химэдзима", desc:"Опасная жрица молний.", avatar:"https://i.imgur.com/6c0Z5hZ.jpg", anime:"Старшая Школа DXD"},
+  {name:"Лойд Форджер", desc:"Хладнокровный шпион.", avatar:"https://i.imgur.com/9U5p4Gk.jpg", anime:"Семья Шпиона"},
+  {name:"Йор Форджер", desc:"Смертоносная убийца.", avatar:"https://i.imgur.com/HLz7WZ9.jpg", anime:"Семья Шпиона"}
+];
+
+const profile = JSON.parse(localStorage.getItem("hakkaProfile")) || { nick:"Игрок", tokens:100 };
+let activeChar = null;
+
+function getUserChars(){ return JSON.parse(localStorage.getItem("customChars_"+profile.nick)) || []; }
+function saveUserChars(chars){ localStorage.setItem("customChars_"+profile.nick, JSON.stringify(chars)); }
+
+function openProfile(){ showScreen("profile"); nickname.value=profile.nick; tokens.textContent=profile.tokens; }
+function saveProfile(){ profile.nick=nickname.value||"Игрок"; localStorage.setItem("hakkaProfile",JSON.stringify(profile)); alert("Профиль сохранён"); }
+function openCharacters(){ showScreen("characters"); renderCharacters(); }
+function openWorkshop(){ showScreen("workshop"); }
+function goMenu(){ showScreen("menu"); }
+
+function renderCharacters(){
+  const grid=document.getElementById("charactersGrid");
+  const filter=document.getElementById("animeFilter").value;
+  grid.innerHTML="";
+  let charsToShow=[...canonChars];
+  const userChars=getUserChars();
+
+  if(filter==="Пользовательские") charsToShow=userChars;
+  else if(filter!=="all") charsToShow=charsToShow.filter(c=>c.anime===filter);
+  if(filter==="all") charsToShow.push(...userChars.map(c=>({...c, anime:"Пользовательские"})));
+
+  charsToShow.forEach(c=>{
+    let colorClass="user-color";
+    if(c.anime==="Старшая Школа DXD") colorClass="dx-color";
+    else if(c.anime==="Хеллсинг") colorClass="hellsing-color";
+    else if(c.anime==="Семья Шпиона") colorClass="spy-color";
+    grid.innerHTML+=`
+      <div class="card char-card">
+        <div class="avatar" style="background-image:url('${c.avatar}')"></div>
+        <strong>${c.name}</strong>
+        <div class="char-label ${colorClass}">${c.anime}</div>
+        <p>${c.desc}</p>
+        <button onclick="openChat('${c.name}')">💬 Написать</button>
+      </div>`;
+  });
+}
+
+function createCharacter(){
+  if(profile.tokens<100)return alert("Недостаточно токенов");
+  if(!charName.value||!charDesc.value||!charAvatar.value)return alert("Заполните все поля");
+  profile.tokens-=100;
+  const chars=getUserChars();
+  chars.push({name:charName.value,desc:charDesc.value,avatar:charAvatar.value,anime:"Пользовательские"});
+  saveUserChars(chars);
+  localStorage.setItem("hakkaProfile",JSON.stringify(profile));
+  charName.value=charDesc.value=charAvatar.value="";
+  alert("Персонаж создан (доступен только вам)");
+}
+
+// ЧАТ
+function openChat(charName){ activeChar=charName; showScreen("chat"); document.getElementById("chatWindow").innerHTML=""; }
+function goCharacters(){ activeChar=null; showScreen("characters"); }
+
+function sendMessage(){
+  const msgInput=document.getElementById("userMessage");
+  const msg=msgInput.value.trim();
+  if(!msg)return;
+  if(profile.tokens<1){alert("Недостаточно токенов!"); return;}
+
+  const chatWin=document.getElementById("chatWindow");
+  const userBlock=document.createElement("div");
+  userBlock.className="chat-message user-msg";
+  userBlock.textContent=msg;
+  chatWin.appendChild(userBlock);
+  msgInput.value=""; chatWin.scrollTop=chatWin.scrollHeight;
+
+  let botReply="Привет! Я персонаж пока без ИИ 🤖";
+  if(botReply.trim()){
+    profile.tokens-=1;
+    localStorage.setItem("hakkaProfile",JSON.stringify(profile));
+    document.getElementById("tokens").textContent=profile.tokens;
+
+    const botBlock=document.createElement("div");
+    botBlock.className="chat-message bot-msg"; botBlock.style.opacity=0;
+    botBlock.innerHTML=`<span class="typing-text"></span><span class="cursor">|</span>`;
+    chatWin.appendChild(botBlock);
+    setTimeout(()=>botBlock.style.opacity=1,50);
+
+    let i=0;
+    const textElem=botBlock.querySelector(".typing-text");
+    const cursor=botBlock.querySelector(".cursor");
+    const cursorBlink=setInterval(()=>{cursor.style.visibility=(cursor.style.visibility==='visible')?'hidden':'visible';},500);
+
+    function typeWriter(){
+      if(i<botReply.length){ textElem.textContent+=botReply[i]; i++; chatWin.scrollTop=chatWin.scrollHeight; setTimeout(typeWriter,50);}
+      else{clearInterval(cursorBlink); cursor.remove();}
+    }
+    typeWriter();
+  }
+}
+
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+</script>
+</body>
+</html>
